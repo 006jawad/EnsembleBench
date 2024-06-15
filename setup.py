@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages 
 
 import os
 import sys
@@ -9,7 +9,7 @@ with open('README.md') as f:
 
 setup(
   name = 'EnsembleBench',
-  packages = ['EnsembleBench',],
+  packages = find_packages(),
   version = '0.0.0.1',      
   description = 'A set of tools for building good ensemble model teams in machine learning.',
   long_description=long_description,

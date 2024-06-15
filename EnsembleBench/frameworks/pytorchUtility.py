@@ -26,6 +26,61 @@ def calAccuracy(output, target, topk=(1,)):
     return res
 
 
+def calAccuracy2(output, target):
+    correct = output.eq(target).sum().item()
+    total_samples = target.size(0)
+    accuracy = correct * 100.0 / total_samples
+    return accuracy
+
+def calPluralityVotingAccuracy(predictionVectorsList, target, modelsList=None):
+    """Computes the accuracy of the model ensemble's predictions using plurality voting."""
+    if modelsList is not None:
+        predictionVectorsStack = torch.stack([predictionVectorsList[i] for i in modelsList])
+        final_predictions = torch.tensor(plurality_voting(predictionVectorsStack))
+    else:
+        final_predictions = torch.tensor(plurality_voting(predictionVectorsList))
+    return calAccuracy2(final_predictions, target)
+
+def calMajorityVotingAccuracy(predictionVectorsList, target, modelsList=None):
+    """Computes the accuracy of the model ensemble's predictions using majority voting."""
+    if modelsList is not None:
+        predictionVectorsStack = torch.stack([predictionVectorsList[i] for i in modelsList])
+        final_predictions = torch.tensor(majority_voting(predictionVectorsStack))
+    else:
+        final_predictions = torch.tensor(majority_voting(predictionVectorsList))
+    return calAccuracy2(final_predictions, target)
+
+def plurality_voting(predictionVectorsList):
+    """Computes the final predicted class for each sample using plurality voting."""
+    final_predictions = []
+    num_classes = predictionVectorsList[0].shape[1]
+    for i in range(predictionVectorsList[0].shape[0]):
+        total_votes = np.zeros(num_classes)
+        for prediction_vectors in predictionVectorsList:
+            predicted_class = np.argmax(prediction_vectors[i])
+            total_votes[predicted_class] += 1
+        final_prediction = np.argmax(total_votes)
+        final_predictions.append(final_prediction)
+    return np.array(final_predictions)
+
+def majority_voting(predictionVectorsList):
+    """Computes the final predicted class for each sample using majority voting."""
+    final_predictions = []
+    num_classes = predictionVectorsList[0].shape[1]
+    for i in range(predictionVectorsList[0].shape[0]):
+        total_votes = np.zeros(num_classes)
+        for prediction_vectors in predictionVectorsList:
+            predicted_class = np.argmax(prediction_vectors[i])
+            total_votes[predicted_class] += 1
+        max_votes = np.max(total_votes)
+        winning_threshold = np.sum(total_votes) / 2
+        if max_votes > winning_threshold:
+            final_prediction = np.argmax(total_votes)
+        else:
+            final_prediction = -1
+        final_predictions.append(final_prediction)
+    return np.array(final_predictions)
+
 def calAveragePredictionVectorAccuracy(predictionVectorsList, target, modelsList=None, topk=(1,)):
     predictionVectorsStack = torch.stack(predictionVectorsList)
     if len(modelsList) > 0:

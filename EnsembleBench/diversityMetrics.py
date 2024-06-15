@@ -104,6 +104,3 @@ def generalized_diversity(M, y_true):
         P1 += i * 1.0 * pi[i] / L
         P2 += i * (i-1) * 1.0 * pi[i] / (L * (L-1))  
     return 1.0-P2/P1 
-    
-    
-        
